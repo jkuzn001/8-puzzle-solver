@@ -31,6 +31,14 @@ class compare {
         }
 };
 
+//swap function for use in expand
+
+void swap(int i1, int i2, int* arr) {
+    int temp = arr[i1];
+    arr[i1] = arr[i2];
+    arr[i2] = temp;
+    return;
+}
 //type definition for function pointers
 typedef priority_queue<node, vector<node>, compare >(*fctptr)(priority_queue<node, vector<node>, compare >, vector<node>);
 
@@ -40,7 +48,7 @@ void general_search(/*FIXME: figure out what goes here*/);
 priority_queue<node, vector<node>, compare > uniform(priority_queue<node,vector<node>, compare >, vector<node>);
 priority_queue<node, vector<node>, compare > mannhattan(priority_queue<node,vector<node>, compare >, vector<node>);
 priority_queue<node, vector<node>, compare > misplaced(priority_queue<node,vector<node>, compare >, vector<node>);
-void expand(node);
+vector<node> expand(node);
 
 //forward declarations of helper functions that calcutlate huerisitics 
 void uniformhueristic(node*);
@@ -54,6 +62,45 @@ void general_search(/*FIXME: figure out what goes here*/) {
 
 }
 
+//expand function
+
+vector<node> expand(node curr) {
+   vector<node> ret; //vector of nodes to return
+   //iterate through puzzle to find the blank
+   for(int i = 0; i < puzzlesize; ++i) {
+       if(curr.config[i] == 0) {
+            //check if node can be expanded upwards if it can
+            //expand it and push onto the vector
+            if(i != 0 && i != 1 && i != 2) {
+                node temp = curr;
+                swap(temp.config[i], temp.config[i - 3], temp.config);
+                ret.push_back(temp);
+            }
+            //check if node can be expanded downwards if it can
+            //expand it and push on the vector
+            if(i != 6 && i != 7 && i != 8) {
+                node temp = curr;
+                swap(temp.config[i], temp.config[i + 3], temp.config);
+                ret.push_back(temp);
+            }
+            //check if node can be expanded left if it can
+            //expand it and push on the vector
+            if(i != 0 && i != 3 && i != 6) {
+                node temp = curr;
+                swap(temp.config[i], temp.config[i - 1], temp.config);
+                ret.push_back(temp);
+            }
+            //check if node can be expanded right if it can
+            //expand it and push on the vector
+            if(i != 2 && i != 5 && i != 8) {
+                node temp = curr;
+                swap(temp.config[i], temp.config[i + 1], temp.config);
+                ret.push_back(temp);
+            }
+            return ret;
+       }
+   }
+}
 
 //implementation of queueing functions
 
@@ -151,6 +198,7 @@ int main() {
 
     cout << "type \'1\' to use a default puzzle or \'2\' to enter a custom puzzle: "; 
     cin  >> input; cout << endl;
+    cin.ignore();
 
     //populate with a premade puzzle
     if(input == 1) {
@@ -164,20 +212,24 @@ int main() {
         puzzle.config[7] = 7;
         puzzle.config[8] = 3;
     }
+    //get user generated puzzle
     else if(input == 2) {
         string in;
         cout << "enter row 1 (type \'0\' for blank, separate numbers with a space)";
         getline(cin, in);
+        cin.ignore();
         puzzle.config[0] = in.at(0) - 48;
         puzzle.config[1] = in.at(2) - 48;
         puzzle.config[2] = in.at(4) - 48;
         cout << "enter row 2 (type \'0\' for blank, separate numbers with a space)";
         getline(cin, in);
+        cin.ignore();
         puzzle.config[3] = in.at(0) - 48;
         puzzle.config[4] = in.at(2) - 48;
         puzzle.config[5] = in.at(4) - 48;
         cout << "enter row 3 (type \'0\' for blank, separate numbers with a space)";
         getline(cin, in);
+        cin.ignore();
         puzzle.config[6] = in.at(0) - 48;
         puzzle.config[7] = in.at(2) - 48;
         puzzle.config[8] = in.at(4) - 48;
