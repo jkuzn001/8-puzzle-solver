@@ -15,7 +15,7 @@ const int rowsize    = 3;
 
 struct node {
     public:
-    int uniformcost = 0;    //uniform cost so far to get to this node
+    int uniformcost = -1;    //uniform cost so far to get to this node set to -1 to make the initialilzation of the queue easier
     int hueristic   = 0;    //hueristic "guess" for this node (calculated during the queueing function depending on the hueristic chosen
     int fn          = 0;    //will store the addition of the uniform cost and the hueursitic
     int config[puzzlesize]; //current puzzle configuration
@@ -27,7 +27,7 @@ struct node {
 class compare {
     public:
         bool operator() (node const & node1,node const & node2) {
-            return node1.fn < node2.fn;
+            return node1.fn > node2.fn;
         }
 };
 
@@ -44,7 +44,7 @@ typedef priority_queue<node, vector<node>, compare >(*fctptr)(priority_queue<nod
 
 //forward declarations of major fucntions
 
-void general_search(/*FIXME: figure out what goes here*/);
+node generalsearch(node, fctptr);
 priority_queue<node, vector<node>, compare > uniform(priority_queue<node,vector<node>, compare >, vector<node>);
 priority_queue<node, vector<node>, compare > mannhattan(priority_queue<node,vector<node>, compare >, vector<node>);
 priority_queue<node, vector<node>, compare > misplaced(priority_queue<node,vector<node>, compare >, vector<node>);
@@ -55,11 +55,57 @@ void uniformhueristic(node*);
 void manhattanhueristic(node*);
 void misplacedhueristic(node*);
 
+//helper function to test if a puzzle in the goal state
+
+bool isgoal(node test) {
+    node goal;
+    goal.config[0] = 1;
+    goal.config[1] = 2;
+    goal.config[2] = 3;
+    goal.config[3] = 4;
+    goal.config[4] = 5;
+    goal.config[5] = 6;
+    goal.config[6] = 7;
+    goal.config[7] = 8;
+    goal.config[8] = 0;
+    for(int i = 0; i < puzzlesize; ++i) {
+        if(test.config[i] != goal.config[i]) return false;
+    }
+    return true;
+}
+
+void print(node p) {
+    cout << "Current Puzzle " << endl;
+    cout << "Cost: " << p.uniformcost << " Hueristic: " << p.hueristic << endl;
+    for(int i = 0; i < puzzlesize; ++i) {
+        cout << p.config[i] << " ";
+        if((i + 1) % 3 == 0 && i != 0) cout << endl;
+    }
+    cout << endl;
+}
 //general search algorithm given by Dr Keogh with some modifications
 //made so I could implement the design in a way that made sense to me
 
-void general_search(/*FIXME: figure out what goes here*/) {
+node generalsearch(node puzzle, fctptr qngfct) {
+    //set up priority queue with given puzzle
+    priority_queue<node, vector<node>, compare> nodes;
+    nodes.push(puzzle);
 
+    //if nodes is empty return failure
+    //if front of nodes queue is the solution return solution
+    //if not expand all children and put them on the queue
+    while(1) {
+        if(nodes.empty()) {
+            node fail;
+            fail.config[0] = -1;
+            return fail;
+        }
+        node curr = nodes.top();
+        print(curr);
+        nodes.pop();
+        if(isgoal(curr)) return curr;
+        nodes = qngfct(nodes,expand(curr));
+    }
 }
 
 //expand function
@@ -67,35 +113,41 @@ void general_search(/*FIXME: figure out what goes here*/) {
 vector<node> expand(node curr) {
    vector<node> ret; //vector of nodes to return
    //iterate through puzzle to find the blank
+   print(curr);
    for(int i = 0; i < puzzlesize; ++i) {
        if(curr.config[i] == 0) {
             //check if node can be expanded upwards if it can
             //expand it and push onto the vector
             if(i != 0 && i != 1 && i != 2) {
                 node temp = curr;
-                swap(temp.config[i], temp.config[i - 3], temp.config);
+                cout << "the blank is at postion: " << i << endl;
+                swap(i, i - 3, temp.config);
                 ret.push_back(temp);
+                //print(temp);
             }
             //check if node can be expanded downwards if it can
             //expand it and push on the vector
             if(i != 6 && i != 7 && i != 8) {
                 node temp = curr;
-                swap(temp.config[i], temp.config[i + 3], temp.config);
+                swap(i, i + 3, temp.config);
                 ret.push_back(temp);
+                //print(temp);
             }
             //check if node can be expanded left if it can
             //expand it and push on the vector
             if(i != 0 && i != 3 && i != 6) {
                 node temp = curr;
-                swap(temp.config[i], temp.config[i - 1], temp.config);
+                swap(i, i - 1, temp.config);
                 ret.push_back(temp);
+                //print(temp);
             }
             //check if node can be expanded right if it can
             //expand it and push on the vector
             if(i != 2 && i != 5 && i != 8) {
                 node temp = curr;
-                swap(temp.config[i], temp.config[i + 1], temp.config);
+                swap(i, i + 1, temp.config);
                 ret.push_back(temp);
+                //print(temp);
             }
             return ret;
        }
@@ -177,7 +229,7 @@ void misplacedhueristic(node* n) {
     //blank which is represented by 0 so we will perform this check on its 
     //own
     for(int i = 0; i < puzzlesize - 1; ++i) { 
-        if(n->config[i] != i) {
+        if(n->config[i] != i + 1) {
             ++temph;
         }
     }
@@ -202,15 +254,15 @@ int main() {
 
     //populate with a premade puzzle
     if(input == 1) {
-        puzzle.config[0] = 8;
-        puzzle.config[1] = 4;
-        puzzle.config[2] = 2;
-        puzzle.config[3] = 6;
+        puzzle.config[0] = 1;
+        puzzle.config[1] = 2;
+        puzzle.config[2] = 3;
+        puzzle.config[3] = 4;
         puzzle.config[4] = 5;
-        puzzle.config[5] = 0;
-        puzzle.config[6] = 1;
-        puzzle.config[7] = 7;
-        puzzle.config[8] = 3;
+        puzzle.config[5] = 6;
+        puzzle.config[6] = 7;
+        puzzle.config[7] = 0;
+        puzzle.config[8] = 8;
     }
     //get user generated puzzle
     else if(input == 2) {
@@ -237,13 +289,34 @@ int main() {
     cout << "Type \'1\' for uniform cost search, \'2\' for misplaced tile, \'3\' for manhanttan distance: ";
     cin  >> input; cout << endl;
     if(input == 1) {
-        //generalsearch(puzzle,uniform);
+        uniformhueristic(&puzzle);
+        puzzle = generalsearch(puzzle,uniform);
+        if(isgoal(puzzle)) {
+            cout << "success! cost: " << puzzle.uniformcost  << endl;
+        }
+        else {
+            cout << "failure" << endl;
+        }
     }
     else if(input == 2) {
-        //generalsearch(puzzle,misplaced);
+        misplacedhueristic(&puzzle);
+        puzzle = generalsearch(puzzle,misplaced);
+        if(isgoal(puzzle)) {
+            cout << "success! cost: " << puzzle.uniformcost  << endl;
+        }
+        else {
+            cout << "failure" << endl;
+        }
     }
     else {
-        //generalseach(puzzle,manhattan);
+        manhattanhueristic(&puzzle);
+        puzzle = generalsearch(puzzle,manhattan);
+        if(isgoal(puzzle)) {
+            cout << "success! cost: " << puzzle.uniformcost  << endl;
+        }
+        else {
+            cout << "failure" << endl;
+        }
     }
 
     return 0;
