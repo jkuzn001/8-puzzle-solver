@@ -16,7 +16,7 @@ const int rowsize    = 3;
 struct node {
     public:
     int uniformcost = -1;    //uniform cost so far to get to this node set to -1 to make the initialilzation of the queue easier
-    int hueristic   = 0;    //hueristic "guess" for this node (calculated during the queueing function depending on the hueristic chosen
+    int heuristic   = 0;    //heuristic "guess" for this node (calculated during the queueing function depending on the heuristic chosen
     int fn          = 0;    //will store the addition of the uniform cost and the hueursitic
     int config[puzzlesize]; //current puzzle configuration
     
@@ -51,9 +51,9 @@ priority_queue<node, vector<node>, compare > misplaced(priority_queue<node,vecto
 vector<node> expand(node);
 
 //forward declarations of helper functions that calcutlate huerisitics 
-void uniformhueristic(node*);
-void manhattanhueristic(node*);
-void misplacedhueristic(node*);
+void uniformheuristic(node*);
+void manhattanheuristic(node*);
+void misplacedheuristic(node*);
 
 //helper function to test if a puzzle in the goal state
 
@@ -76,7 +76,7 @@ bool isgoal(node test) {
 
 void print(node p) {
     cout << "Best node to expand " << endl;
-    cout << "Cost: " << p.uniformcost << " Hueristic: " << p.hueristic << endl;
+    cout << "Cost: " << p.uniformcost << " Heuristic: " << p.heuristic << endl;
     for(int i = 0; i < puzzlesize; ++i) {
         cout << p.config[i] << " ";
         if((i + 1) % 3 == 0 && i != 0) cout << endl;
@@ -154,7 +154,7 @@ vector<node> expand(node curr) {
 priority_queue<node, vector<node>, compare > uniform(priority_queue<node, vector<node>, compare > nodes, vector<node> v) {
     for(int i = 0; i < v.size(); ++i) {
         node temp = v.at(i);
-        uniformhueristic(&temp);
+        uniformheuristic(&temp);
         nodes.push(temp);
     }
     return nodes;
@@ -164,7 +164,7 @@ priority_queue<node, vector<node>, compare > uniform(priority_queue<node, vector
 priority_queue<node, vector<node>, compare > manhattan(priority_queue<node, vector<node>, compare > nodes, vector<node> v) {
     for(int i = 0; i < v.size(); ++i) {
         node temp = v.at(i);
-        manhattanhueristic(&temp);
+        manhattanheuristic(&temp);
         nodes.push(temp);
     }
     return nodes;
@@ -174,29 +174,29 @@ priority_queue<node, vector<node>, compare > manhattan(priority_queue<node, vect
 priority_queue<node, vector<node>, compare > misplaced(priority_queue<node, vector<node>, compare > nodes, vector<node> v) {
     for(int i = 0; i < v.size(); ++i) {
         node temp = v.at(i);
-        misplacedhueristic(&temp);
+        misplacedheuristic(&temp);
         nodes.push(temp);
     }
     return nodes;
 }
 
-//implementation of hueristic calculating functions
-//increments uniform cost by 1 calculates new hueristic
+//implementation of heuristic calculating functions
+//increments uniform cost by 1 calculates new heuristic
 //and calculates f(n) for the node
 
-void uniformhueristic(node* n) {
+void uniformheuristic(node* n) {
     ++n->uniformcost;
-    n->hueristic = 0; //this value is always 0 since we are doing uniform cost search
-    n->fn = n->uniformcost + n->hueristic;
+    n->heuristic = 0; //this value is always 0 since we are doing uniform cost search
+    n->fn = n->uniformcost + n->heuristic;
     return;
 }
 
-void manhattanhueristic(node* n) {
+void manhattanheuristic(node* n) {
     ++n->uniformcost;
-    int temph = 0;      //temporary variable for the hueristic
+    int temph = 0;      //temporary variable for the heuristic
     for(int i = 0; i < puzzlesize; ++i) {
         if(n->config[i] != 0) {
-            int dist = abs(n->config[i] - i);
+            int dist = abs(n->config[i] - (i + 1));
             //calculate the manhattan distance by adding the number of columns (dist % rowsize)
             //to the number of rows (dist / rowsize) each tile is away from its propper place
             temph += (dist % rowsize) + (dist / rowsize);
@@ -204,22 +204,22 @@ void manhattanhueristic(node* n) {
         else {
             //same calculation as above except it takes special measures for the blank which
             //is represented by a 0
-            int dist = abs(puzzlesize - i);
+            int dist = abs(puzzlesize - (i + 1));
             temph += (dist % rowsize) + (dist / rowsize);
         }
     }
-    n->hueristic = temph;
-    n->fn = n->hueristic + n->uniformcost;
+    n->heuristic = temph;
+    n->fn = n->heuristic + n->uniformcost;
     return;
 }
 
-void misplacedhueristic(node* n) {
+void misplacedheuristic(node* n) {
     ++n->uniformcost;
-    int temph = 0;      //temporary variable for the hueristic
+    int temph = 0;      //temporary variable for the heuristic
 
     //loop through the current puzzle configuration if the index does not
     //match the value at that index the tile is misplaced and we should
-    //add one the the hueristic guess
+    //add one the the heuristic guess
     //this is not true for the last entry in the array which should be the 
     //blank which is represented by 0 so we will perform this check on its 
     //own
@@ -231,8 +231,8 @@ void misplacedhueristic(node* n) {
     if(n->config[puzzlesize - 1] != 0) {
         ++temph;
     }
-    n->hueristic = temph;
-    n->fn = n->hueristic + n->uniformcost;
+    n->heuristic = temph;
+    n->fn = n->heuristic + n->uniformcost;
     return;
 }
 int main() {
@@ -284,7 +284,7 @@ int main() {
     cout << "Type \'1\' for uniform cost search, \'2\' for misplaced tile, \'3\' for manhanttan distance: ";
     cin  >> input; cout << endl;
     if(input == 1) {
-        uniformhueristic(&puzzle);
+        uniformheuristic(&puzzle);
         puzzle = generalsearch(puzzle,uniform);
         if(isgoal(puzzle)) {
             cout << "success! cost: " << puzzle.uniformcost  << endl;
@@ -294,7 +294,7 @@ int main() {
         }
     }
     else if(input == 2) {
-        misplacedhueristic(&puzzle);
+        misplacedheuristic(&puzzle);
         puzzle = generalsearch(puzzle,misplaced);
         if(isgoal(puzzle)) {
             cout << "success! cost: " << puzzle.uniformcost  << endl;
@@ -304,7 +304,7 @@ int main() {
         }
     }
     else {
-        manhattanhueristic(&puzzle);
+        manhattanheuristic(&puzzle);
         puzzle = generalsearch(puzzle,manhattan);
         if(isgoal(puzzle)) {
             cout << "success! cost: " << puzzle.uniformcost  << endl;
