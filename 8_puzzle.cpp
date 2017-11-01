@@ -75,7 +75,7 @@ bool isgoal(node test) {
 }
 
 void print(node p) {
-    cout << "Current Puzzle " << endl;
+    cout << "Best node to expand " << endl;
     cout << "Cost: " << p.uniformcost << " Hueristic: " << p.hueristic << endl;
     for(int i = 0; i < puzzlesize; ++i) {
         cout << p.config[i] << " ";
@@ -101,8 +101,8 @@ node generalsearch(node puzzle, fctptr qngfct) {
             return fail;
         }
         node curr = nodes.top();
-        print(curr);
         nodes.pop();
+        print(curr);
         if(isgoal(curr)) return curr;
         nodes = qngfct(nodes,expand(curr));
     }
@@ -120,10 +120,8 @@ vector<node> expand(node curr) {
             //expand it and push onto the vector
             if(i != 0 && i != 1 && i != 2) {
                 node temp = curr;
-                cout << "the blank is at postion: " << i << endl;
                 swap(i, i - 3, temp.config);
                 ret.push_back(temp);
-                //print(temp);
             }
             //check if node can be expanded downwards if it can
             //expand it and push on the vector
@@ -131,7 +129,6 @@ vector<node> expand(node curr) {
                 node temp = curr;
                 swap(i, i + 3, temp.config);
                 ret.push_back(temp);
-                //print(temp);
             }
             //check if node can be expanded left if it can
             //expand it and push on the vector
@@ -139,7 +136,6 @@ vector<node> expand(node curr) {
                 node temp = curr;
                 swap(i, i - 1, temp.config);
                 ret.push_back(temp);
-                //print(temp);
             }
             //check if node can be expanded right if it can
             //expand it and push on the vector
@@ -147,7 +143,6 @@ vector<node> expand(node curr) {
                 node temp = curr;
                 swap(i, i + 1, temp.config);
                 ret.push_back(temp);
-                //print(temp);
             }
             return ret;
        }
@@ -269,19 +264,19 @@ int main() {
         string in;
         cout << "enter row 1 (type \'0\' for blank, separate numbers with a space)";
         getline(cin, in);
-        cin.ignore();
+        //cin.ignore();
         puzzle.config[0] = in.at(0) - 48;
         puzzle.config[1] = in.at(2) - 48;
         puzzle.config[2] = in.at(4) - 48;
         cout << "enter row 2 (type \'0\' for blank, separate numbers with a space)";
         getline(cin, in);
-        cin.ignore();
+        //cin.ignore();
         puzzle.config[3] = in.at(0) - 48;
         puzzle.config[4] = in.at(2) - 48;
         puzzle.config[5] = in.at(4) - 48;
         cout << "enter row 3 (type \'0\' for blank, separate numbers with a space)";
         getline(cin, in);
-        cin.ignore();
+        //cin.ignore();
         puzzle.config[6] = in.at(0) - 48;
         puzzle.config[7] = in.at(2) - 48;
         puzzle.config[8] = in.at(4) - 48;
